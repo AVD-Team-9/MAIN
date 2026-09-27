@@ -91,18 +91,6 @@ The end of `main.tex` contains:
 
 If a newly added source does not appear, confirm its citation key is used, check the `.bib` syntax, and select **Recompile from scratch**. BibTeX normally omits entries that are never cited.
 
-## GitHub repository
-
-Browser URL: <https://github.com/SantanaMarcoss/Team9>
-
-Clone command:
-
-```bash
-git clone https://github.com/SantanaMarcoss/Team9.git
-```
-
-Before submission, replace every `COMMIT-HASH` and code path with a permanent GitHub link. Add `Krishbhatt01` and `qmciver` as repository collaborators, and make the repository README map students to code, figures, and commit permalinks.
-
 ## Final checks
 
 Search the project for `TBD`, `COMMIT-HASH`, and `path/to/file.m`. Confirm each trade plot contains labeled axes and units, threshold/objective markers where applicable, frozen baseline, recommendation, and a readable caption. Keep each individual contribution between one and two pages.
