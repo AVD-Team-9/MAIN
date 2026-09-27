@@ -2,6 +2,13 @@
 
 This project compiles one team PDF containing team-level Sections 1–6 followed by a separate 1–2 page contribution for each Team 9 member.
 
+## Project Folders
+
+The project id divided into folders, the main tex and other supporting files. See the image below:
+
+<img width="256" height="248" alt="image" src="https://github.com/user-attachments/assets/f9e715a9-106d-4caf-b43b-1c6b2789b45b" />
+
+
 ## Upload to Overleaf
 
 1. In Overleaf, choose **New Project → Upload Project**.
