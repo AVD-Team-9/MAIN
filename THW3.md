@@ -18,7 +18,10 @@ The project id divided into folders, the main tex and other supporting files. Se
 
 ## Upload MATLAB figures as PNG
 
-All image files belong in the project-level `figures/` folder.
+All image files belong in the project-level `figures/` folder, see below:
+
+<img width="244" height="278" alt="image" src="https://github.com/user-attachments/assets/50e57152-6782-41a5-99ad-01f3e32ec3df" />
+
 
 1. In MATLAB, create and format the final plot with readable labels, units, legend, and annotations.
 2. Export a 300 dpi PNG. Example:
@@ -65,6 +68,9 @@ Each person has a separate file in `members/`:
 - `jonah-chase.tex` — Mission / Cost Analysis
 
 Members should only edit their own file and upload their uniquely named PNG to `figures/`. Each file can compile independently through Overleaf's **Compile this file** option and is already included in `main.tex`.
+
+<img width="252" height="342" alt="image" src="https://github.com/user-attachments/assets/fde0e30a-0e51-4816-9edd-1d5bf761b0c0" />
+
 
 ## References and BibTeX
 
