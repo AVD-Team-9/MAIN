@@ -1,0 +1,296 @@
+{
+  "_comment": "Requirements and model inputs for the TURBOFAN version of the IHW3 sizing code. Every number here is a PLACEHOLDER for a generic light twin-turbofan business jet (2 crew + 6 passengers). Replace them with the requirements of YOUR proposed aircraft before you trust any result. Keys that start with an underscore are documentation: jsondecode renames them to x_..., and no code reads them.",
+  "_what_changed_from_the_TTPA_file": "(1) propulsion is thrust-based: T_SL, a thrust lapse model and TSFC replace P_SL, the piston lapse, BSFC and propeller efficiency. (2) the constraints are FAR 25 (transport category) instead of FAR 23, and every constraint returns a MINIMUM thrust loading T/W instead of a maximum power loading W/P. (3) the aerodynamics adds sweep, compressibility (wave) drag, and a windmilling-engine drag increment in place of the stopped-propeller increment. (4) the weights use the TRANSPORT column of Raymer Table 15.2. (5) the mission segments are jet segments (jet Breguet range and endurance, climb on excess thrust).",
+  "_who_reads_what": "geometry -> TfGeom. aerodynamics -> TfAero. propulsion -> TfProp. weights -> TfWeights. sizing -> run_tf_sizing -> sizing_mainloop. constraints.conditions -> ConstraintSetImporter.read_conditions -> get_con. constraints.design_point and constraints.W_TO_estimate_lbf -> run_tf_constraints. missions -> MissionProfileReader.read_profile -> get_miss_seg -> run_mission_jet -> mission_fuel.",
+
+  "geometry": {
+    "_comment": "SHAPE only. S_ref is written by the sizing loop (or by run_tf_constraints); every span, chord, area and wetted area is a Dependent property of TfGeom recomputed from S_ref on every read.",
+    "AR": 8.0,
+    "_src_AR": "PLACEHOLDER. Light business jets are typically AR 7-9 (Raymer Table 4.1 gives about 7.5 for jet transports/business jets).",
+    "taper_ratio": 0.35,
+    "_src_taper_ratio": "PLACEHOLDER. Raymer Fig. 4.24: a quarter-chord sweep of about 25 deg wants a taper ratio near 0.3-0.4.",
+    "sweep_quarter_chord_deg": 25,
+    "_src_sweep_quarter_chord_deg": "PLACEHOLDER. Used now: it sets the leading-edge sweep (which picks the Oswald-efficiency formula) and the drag-divergence Mach number (Korn equation).",
+    "thickness_ratio_root": 0.14,
+    "thickness_ratio_tip": 0.11,
+    "_src_thickness_ratio": "PLACEHOLDER supercritical sections. The MEAN goes into the wetted area (Raymer Eq. 7.12) and into the Korn drag-divergence equation; the ROOT goes into the Torenbeek fuel-volume equation.",
+    "twist_deg": -3,
+    "incidence_deg": 1.5,
+    "dihedral_deg": 3,
+    "_src_twist_incidence_dihedral": "Reporting only - not read by the sizing loop.",
+    "horizontal_tail": {
+      "volume_coefficient": 1.0,
+      "arm_ft": 20.0,
+      "AR": 4.5,
+      "taper_ratio": 0.45,
+      "thickness_ratio": 0.10,
+      "sweep_quarter_chord_deg": 30,
+      "_src": "Raymer Table 6.4, jet transport: c_HT = 1.00. Arm and planform are PLACEHOLDERS - measure them off your layout. S_ht = c_HT * S_ref * MAC / arm [Raymer Eq. 6.29]. For a T-tail Raymer allows about 5 % less."
+    },
+    "vertical_tail": {
+      "volume_coefficient": 0.09,
+      "arm_ft": 19.0,
+      "AR": 1.4,
+      "taper_ratio": 0.6,
+      "thickness_ratio": 0.10,
+      "sweep_quarter_chord_deg": 35,
+      "_src": "Raymer Table 6.4, jet transport: c_VT = 0.09. Arm and planform are PLACEHOLDERS. S_vt = c_VT * S_ref * b / arm [Raymer Eq. 6.28]. Note: a twin with wing-mounted engines may need MORE vertical tail for engine-out control - check it."
+    },
+    "fuselage": {
+      "_comment": "Cabin-driven, so CONSTANT through the sizing loop. PLACEHOLDER layout: 6 passenger seats in a 2-abreast club arrangement plus a 2-seat cockpit.",
+      "width_ft": 6.0,
+      "height_ft": 6.3,
+      "nose_length_ft": 8.0,
+      "constant_length_ft": 20.0,
+      "tailcone_length_ft": 14.0,
+      "tailcone_end_width_ft": 0.8,
+      "tailcone_end_height_ft": 1.0,
+      "_src_lengths": "PLACEHOLDER. Total 42 ft, a fineness ratio of about 6.7."
+    },
+    "nacelle": {
+      "_comment": "One nacelle per engine. Unlike the piston TTPA, BOTH the length AND the diameter follow the engine, because a turbofan's diameter grows with thrust (Raymer Eq. 10.3). The two factors below stretch the BARE engine into its nacelle (inlet lip, cowl, exhaust).",
+      "diameter_over_engine_diameter": 1.15,
+      "length_over_engine_length": 1.4,
+      "_src": "Layout assumptions, NOT textbook values. Measure them off your layout when you have one."
+    },
+    "landing_gear": {
+      "l_n_over_l_d": 0.9,
+      "l_m_over_l_d": 0.12,
+      "_src": "Raymer Ch. 11 static-load ratios; PLACEHOLDERS until a weight-and-balance study fixes the cg envelope. Used only by landing_gear_loads, after the loop."
+    }
+  },
+
+  "aerodynamics": {
+    "_comment": "Clean CD0 is computed from the geometry (Raymer Eq. 12.23, CD0 = Cfe * S_wet/S_ref). Compressibility (wave) drag is added on top of it at the flight Mach number by the Korn equation plus Lock's fourth-power law. The configuration polars add flap, gear and windmilling-engine increments.",
+    "Cfe": 0.0030,
+    "_src_Cfe": "Raymer Table 12.3: civil transport 0.0026, bomber/transport 0.0030 range; 0.0030 is a reasonable business-jet value. PLACEHOLDER.",
+    "CD0_reference": 0.020,
+    "_src_CD0_reference": "CHECK VALUE only (nothing computes with it): a typical clean business-jet CD0, printed next to the computed one.",
+    "airfoil_type": "supercritical",
+    "_src_airfoil_type": "PLACEHOLDER supercritical section, typical of business jets. Options: 'supercritical' (Korn kappa_A 0.95: flat-topped, aft-loaded section) or 'conventional' (0.87: NACA 6-series style). 'custom' uses korn_technology_factor instead. The type only moves the Korn drag-divergence Mach in this model; handling effects are not modelled. Override per run with run_tf_constraints/run_tf_sizing(..., 'airfoil', 'conventional') or trade it with airfoil_sweep_study.",
+    "CLmax_clean": 1.5,
+    "CLmax_takeoff": 1.8,
+    "CLmax_landing": 2.3,
+    "CLmax_reference_sweep_deg": 25,
+    "_src_CLmax_reference_sweep_deg": "The quarter-chord sweep the three CLmax values above are quoted at. TfAero scales all three by cos(sweep)/cos(this) when geometry.sweep_quarter_chord_deg differs (Raymer Sec. 12.4), so a sweep change also costs CLmax. Remove the key to use CLmax as given at any sweep.",
+    "_src_CLmax": "Roskam Part I Table 3.1, business jets: clean 1.4-1.8, takeoff 1.6-2.2, landing 1.6-2.6. PLACEHOLDERS - mid-range.",
+    "delta_CD0_flaps_takeoff": 0.015,
+    "delta_CD0_flaps_landing": 0.060,
+    "delta_CD0_gear_down": 0.020,
+    "delta_e_flaps_takeoff": -0.05,
+    "delta_e_flaps_landing": -0.10,
+    "_src_increments": "Roskam Part I Table 3.6 (same table the TTPA used): takeoff flaps 0.010-0.020, landing flaps 0.055-0.075, gear 0.015-0.025; e drops about 0.05 (takeoff flaps) and 0.10 (landing flaps).",
+    "delta_CD0_windmilling_engine": 0.003,
+    "_src_delta_CD0_windmilling_engine": "Drag of the failed engine (windmilling fan plus spillage), added in the one-engine-inoperative conditions. Replaces the stopped-propeller increment of the TTPA. PLACEHOLDER: Torenbeek Appendix G gives methods; 0.002-0.005 is typical for a small turbofan."
+  },
+
+  "propulsion": {
+    "_comment": "Thrust-based. T_SL is the SEA-LEVEL STATIC, INSTALLED, TAKEOFF-RATED thrust of ALL engines [lbf]; the sizing loop writes it as W_TO * (T/W). The thrust lapse and the TSFC models are generic high-bypass turbofan models; replace them with your candidate engine's deck when you have one.",
+    "engine_type": "High-bypass turbofan",
+    "n_engines": 2,
+    "bypass_ratio": 4.0,
+    "_src_bypass_ratio": "PLACEHOLDER. Small business-jet turbofans are BPR 3-5. Enters the engine weight and diameter regressions (Raymer Eqs. 10.1 and 10.3).",
+    "lapse_model": "mattingly_hbtf",
+    "_lapse_and_tsfc_options": "Two engine types. HIGH bypass (BPR ~4+): lapse_model and tsfc_model = 'mattingly_hbtf'. LOW bypass, dry, subsonic (BPR below ~1.5, no afterburner): lapse_model and tsfc_model = 'mattingly_lbtf'. Set BOTH keys to the same type and set bypass_ratio to match (the engine weight and diameter regressions read it). For a low-bypass engine Mattingly suggests a throttle ratio near 1.0-1.08. tsfc_model can also be 'constant' (uses tsfc_constant_per_hr).",
+    "_src_lapse_model": "'mattingly_hbtf' is Mattingly, Heiser and Pratt, Aircraft Engine Design, 2nd ed., Eq. (2.54a), high-bypass turbofan, maximum power: alpha = delta_0 * (1 - 0.49*sqrt(M0)) when theta_0 <= TR, and delta_0 * (1 - 0.49*sqrt(M0) - 3*(theta_0 - TR)/(1.5 + M0)) when theta_0 > TR. Check the equation against your edition. 'mattingly_lbtf' is Mattingly AED 2nd ed. Eq. (2.54b), low-bypass mixed-flow turbofan at military (maximum DRY) power, divided by its 0.6 so that alpha = 1 at sea-level static and T_SL is the DRY static thrust: alpha = delta_0 when theta_0 <= TR, delta_0 * (1 - 3.8*(theta_0 - TR)/theta_0) when theta_0 > TR.",
+    "throttle_ratio": 1.05,
+    "_src_throttle_ratio": "TR = theta_0 at which the engine reaches its turbine-temperature limit (Mattingly Sec. 2.3). 1.0-1.1 is typical for a civil turbofan. PLACEHOLDER.",
+    "tsfc_model": "mattingly_hbtf",
+    "_src_tsfc_model": "'mattingly_hbtf' is Mattingly AED 2nd ed. Eq. (3.55a), high-bypass turbofan: TSFC = (0.45 + 0.54*M0) * sqrt(theta) [1/hr]. 'mattingly_lbtf' is Mattingly AED 2nd ed. Eq. (3.55b), low-bypass mixed-flow turbofan at military (dry) power: TSFC = (0.9 + 0.30*M0) * sqrt(theta) [1/hr]. 'constant' uses tsfc_constant_per_hr everywhere.",
+    "tsfc_constant_per_hr": 0.70,
+    "T_TO_over_T_max_continuous": 1.10,
+    "_src_T_TO_over_T_max_continuous": "Takeoff thrust / maximum continuous thrust. PLACEHOLDER; about 1.05-1.15 for a civil turbofan. Used by the conditions that set max_continuous = true and by the climb segments.",
+    "installation_loss_fraction": 0.05,
+    "_src_installation_loss_fraction": "Inlet, bleed and power-extraction losses. The constraint analysis works with INSTALLED thrust; the driver divides by (1 - this) to report the UNINSTALLED thrust you would compare against an engine catalogue. PLACEHOLDER: 3-8 % is typical.",
+    "design_mach": 0.75,
+    "_src_design_mach": "Maximum operating Mach number, which enters the engine LENGTH regression (Raymer Eq. 10.2).",
+    "engine_weight_coefficient": 0.084,
+    "engine_weight_exponent": 1.1,
+    "engine_weight_bpr_coefficient": -0.045,
+    "engine_length_coefficient": 0.185,
+    "engine_length_exponent": 0.4,
+    "engine_length_mach_exponent": 0.2,
+    "engine_diameter_coefficient": 0.033,
+    "engine_diameter_exponent": 0.5,
+    "engine_diameter_bpr_coefficient": 0.04,
+    "_src_engine_regression": "Raymer, Aircraft Design: A Conceptual Approach, Eqs. 10.1-10.3, 'rubber engine' statistical model for a NON-afterburning turbojet/turbofan, PER ENGINE, T in lbf (takeoff thrust of one engine): W = 0.084 T^1.1 exp(-0.045 BPR) [lb], L = 0.185 T^0.4 M^0.2 [ft], D = 0.033 T^0.5 exp(0.04 BPR) [ft]. Check the coefficients against your edition.",
+    "thrust_range_of_validity_lbf": [1000, 100000],
+    "_src_thrust_range_of_validity_lbf": "Range over which TfProp does not warn. Generous: the Raymer fit is a broad statistical trend."
+  },
+
+  "weights": {
+    "_comment": "Raymer Table 15.2 component build-up. Raymer prints three columns - fighter, transport/bomber and general aviation - and NONE fits a light business jet: the transport column (wing 10, tails 5.5, fuselage 5.0 psf, all-else 0.17 W0) is calibrated on airliners and gives this 16,000 lb airplane an empty-weight fraction of about 0.70, which does not close; the GA column is calibrated on unpressurised piston airplanes and is too light. The unit weights below are PLACEHOLDERS set between the two columns. CALIBRATE THEM before trusting the result: the usual way is to run the build-up on one or two existing business jets of the same size (known S_ref, OEW, thrust) and scale the unit weights until the build-up reproduces their OEW. The statistical cross-check printed by run_tf_sizing is a first sanity check.",
+    "W_payload_fixed": 2000,
+    "W_payload_expendable": 0,
+    "_src_W_payload": "PLACEHOLDER: 2 crew + 6 passengers at 200 lb each (1600 lb) plus 400 lb of baggage.",
+    "unit_weight_wing_psf": 6.0,
+    "unit_weight_horizontal_tail_psf": 4.0,
+    "unit_weight_vertical_tail_psf": 4.0,
+    "unit_weight_fuselage_psf": 3.0,
+    "_src_unit_weights": "PLACEHOLDERS between Raymer Table 15.2 GA (wing 2.5, tails 2.0, fuselage 1.4 psf) and transport (10, 5.5, 5.0 psf). Wing and tails multiply planform area (EXPOSED for the wing; the tails use their full volume-coefficient area, slightly conservative); the fuselage multiplies WETTED area.",
+    "landing_gear_fraction": 0.043,
+    "installed_engine_factor": 1.3,
+    "all_else_empty_fraction": 0.15,
+    "_src_fractions": "Raymer Table 15.2: landing gear 0.043 W0 and installed engine 1.3 x bare (transport column). All-else-empty 0.15 W0 is a PLACEHOLDER between GA (0.10) and transport (0.17).",
+    "statistical_empty_coefficient": 1.02,
+    "statistical_empty_exponent": -0.06,
+    "_src_statistical_empty": "Raymer Table 3.1, jet transport: We/W0 = 1.02 * W0^-0.06. CROSS-CHECK ONLY (OEW_statistical); the loop uses the build-up. Business jets often sit a few percent above this line.",
+    "fuel_density_lb_per_ft3": 50.1,
+    "_src_fuel_density": "Jet-A at 15 degC, about 6.7 lb/US gal = 50.1 lb/ft^3. Used only by the post-sizing wing fuel-volume check."
+  },
+
+  "sizing": {
+    "_comment": "Read by run_tf_sizing and handed to sizing_mainloop. Three states are iterated: W_0, T_SL and S_ref.",
+    "W_TO_guess_lbf": 16000,
+    "S_ref_guess_ft2": 250,
+    "tol_rel": 1e-06,
+    "max_iter": 300,
+    "relaxation": 0.4,
+    "_src_relaxation": "Under-relaxation factor, x <- x + w (x_new - x). Changes the PATH, not the answer. run_tf_sizing retries with smaller values if this one does not close."
+  },
+
+  "constraints": {
+    "_comment": "FAR 25 constraint conditions. Every condition returns the MINIMUM installed sea-level-static takeoff thrust loading (T/W)_TO it allows, except landing, which returns the MAXIMUM wing loading (a vertical wall).",
+    "_condition_keys": "type: takeoff | landing | climb_gradient | flight. Optional keys and their defaults (see get_con): config 'clean', beta 1.0 (W_condition/W_TO), throttle 1.0, oei false, max_continuous false, engine_out_drag false, mach 0, n 1, Ps_fps 0, speed_over_stall 1.2.",
+    "wing_loading_range_psf": [20, 120],
+    "wing_loading_points": 600,
+    "W_TO_estimate_lbf": 16000,
+    "_src_W_TO_estimate_lbf": "Used ONLY by run_tf_constraints, the diagram-only driver, to turn the chosen (T/W) into a thrust: T_SL = (T/W) * W_TO. run_tf_sizing replaces it with the converged weight.",
+    "design_point": {
+      "wing_loading_psf": 62,
+      "thrust_loading": 0.47,
+      "_src": "PLACEHOLDER design point. Pick yours off the diagram, backed away from the least-thrust corner for margin."
+    },
+    "conditions": [
+      {
+        "name": "Takeoff FAR 25",
+        "type": "takeoff",
+        "altitude_ft": 0,
+        "distance_ft": 4500,
+        "config": "takeoff_flaps_gear_down",
+        "beta": 1.0,
+        "_src": "FAR 25 takeoff field length (balanced field, includes the engine failure) of 4,500 ft at sea level, standard day. PLACEHOLDER. Roskam Part I Sec. 3.4: s_TOFL = 37.5 * TOP25, TOP25 = (W/S)_TO / (sigma * CLmax_TO * (T/W)_TO)."
+      },
+      {
+        "name": "Landing FAR 25",
+        "type": "landing",
+        "altitude_ft": 0,
+        "distance_ft": 3600,
+        "config": "landing_flaps_gear_down",
+        "beta": 0.85,
+        "_src": "FAR 25 landing field length of 3,600 ft at sea level. PLACEHOLDER. Roskam Part I Sec. 3.4: s_FL = 0.3 * V_A^2 (V_A in kt), V_A = 1.3 V_sL. beta = 0.85 is a typical maximum landing weight / takeoff weight for a business jet."
+      },
+      {
+        "name": "1st segment OEI",
+        "type": "climb_gradient",
+        "altitude_ft": 0,
+        "mach": 0.18,
+        "G": 0.0,
+        "config": "takeoff_flaps_gear_down",
+        "oei": true,
+        "engine_out_drag": true,
+        "speed_over_stall": 1.2,
+        "beta": 1.0,
+        "_src": "FAR 25.121(a), twin: positive gradient (> 0) with the gear down, takeoff flaps, one engine inoperative, at V_LOF (taken as 1.2 V_s)."
+      },
+      {
+        "name": "2nd segment OEI",
+        "type": "climb_gradient",
+        "altitude_ft": 0,
+        "mach": 0.18,
+        "G": 0.024,
+        "config": "takeoff_flaps_gear_up",
+        "oei": true,
+        "engine_out_drag": true,
+        "speed_over_stall": 1.2,
+        "beta": 1.0,
+        "_src": "FAR 25.121(b), twin: 2.4 % gradient, gear up, takeoff flaps, one engine inoperative, at V2 = 1.2 V_s. Usually the climb requirement that sizes a twin."
+      },
+      {
+        "name": "En-route OEI",
+        "type": "climb_gradient",
+        "altitude_ft": 1500,
+        "mach": 0.25,
+        "G": 0.012,
+        "config": "clean",
+        "oei": true,
+        "engine_out_drag": true,
+        "max_continuous": true,
+        "speed_over_stall": 1.25,
+        "beta": 1.0,
+        "_src": "FAR 25.121(c), twin: 1.2 % gradient, clean, one engine inoperative at maximum continuous thrust, at 1.25 V_s."
+      },
+      {
+        "name": "Approach climb OEI",
+        "type": "climb_gradient",
+        "altitude_ft": 0,
+        "mach": 0.2,
+        "G": 0.021,
+        "config": "takeoff_flaps_gear_up",
+        "oei": true,
+        "engine_out_drag": true,
+        "speed_over_stall": 1.5,
+        "beta": 0.85,
+        "_src": "FAR 25.121(d), twin: 2.1 % gradient with approach flaps (taken here as takeoff flaps), gear up, one engine inoperative, at landing weight, at no more than 1.5 V_s (Roskam Part I Sec. 3.4)."
+      },
+      {
+        "name": "Balked landing AEO",
+        "type": "climb_gradient",
+        "altitude_ft": 0,
+        "mach": 0.18,
+        "G": 0.032,
+        "config": "landing_flaps_gear_down",
+        "oei": false,
+        "speed_over_stall": 1.3,
+        "beta": 0.85,
+        "_src": "FAR 25.119: 3.2 % gradient, landing flaps, gear down, all engines operating, at landing weight, at 1.3 V_s."
+      },
+      {
+        "name": "Cruise",
+        "type": "flight",
+        "altitude_ft": 41000,
+        "mach": 0.75,
+        "n": 1.0,
+        "Ps_fps": 0,
+        "config": "clean",
+        "max_continuous": true,
+        "beta": 0.92,
+        "_src": "Cruise at M 0.75, 41,000 ft, at maximum continuous thrust, at a mid-cruise weight of 0.92 W_TO. PLACEHOLDER. Mattingly master equation with n = 1 and Ps = 0: thrust equals drag."
+      },
+      {
+        "name": "Initial cruise ceiling",
+        "type": "flight",
+        "altitude_ft": 41000,
+        "mach": 0.72,
+        "n": 1.0,
+        "Ps_fps": 5.0,
+        "config": "clean",
+        "max_continuous": false,
+        "beta": 0.97,
+        "_src": "Able to climb at 300 ft/min (Ps = 5 ft/s) at the start of cruise, 41,000 ft and M 0.72, at MAXIMUM CLIMB thrust (modelled as the full rating, max_continuous = false). PLACEHOLDER - this is the usual way an 'initial cruise altitude capability' requirement is written."
+      }
+    ]
+  },
+
+  "missions": {
+    "std_mission": {
+      "_description": "Business-jet design mission: start/taxi/takeoff, climb, cruise, descent, climb, loiter (hold), descent, landing. PLACEHOLDER numbers.",
+      "reserve_fuel_fraction": 0.05,
+      "_src_reserve": "Reserve and trapped-fuel allowance applied on top of the mission fuel. PLACEHOLDER - NBAA-style IFR reserves are often written as a separate alternate + hold; the hold is modelled as the loiter segment here.",
+      "climb_segments": 8,
+      "cruise_segments": 20,
+      "segments": [
+        { "type": "takeoff", "name": "Start, taxi, takeoff", "alt_ft": 0, "weight_fraction": 0.980 },
+        { "type": "climb", "name": "Climb", "alt_ft": 41000, "keas": 250, "mach": 0.70 },
+        { "type": "cruise", "name": "Cruise", "alt_ft": 41000, "mach": 0.75, "distance_nm": 1800 },
+        { "type": "descent", "name": "Descent", "alt_ft": 0, "weight_fraction": 0.990 },
+        { "type": "climb", "name": "Climb to hold", "alt_ft": 5000, "keas": 200, "mach": 0.50 },
+        { "type": "loiter", "name": "Hold", "alt_ft": 5000, "ktas": 200, "time_min": 45 },
+        { "type": "descent", "name": "Descent", "alt_ft": 0, "weight_fraction": 0.990 },
+        { "type": "landing", "name": "Landing, taxi", "alt_ft": 0, "weight_fraction": 0.992 }
+      ],
+      "_src_climb_schedule": "Climb segments fly a constant EQUIVALENT airspeed (keas) until the true airspeed reaches the Mach number given by 'mach', then hold that Mach - the usual jet climb schedule (e.g. 250 KEAS / M 0.70). The crossover altitude is where the two meet.",
+      "_src_fixed_fractions": "Roskam Part I Table 2.1, business jets: start 0.990 x taxi 0.995 x takeoff 0.995 = 0.980; descent 0.990; landing/taxi/shutdown 0.992. Unlike the TTPA code, these are READ from each segment's weight_fraction key, not hardcoded."
+    }
+  }
+}

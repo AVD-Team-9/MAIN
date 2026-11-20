@@ -1,0 +1,446 @@
+{
+  "_comment": "PRM2 land-based naval jet trainer, TEAM DESIGN CASE sized around a REAL ENGINE, the General Electric F404-GE-100D (non-afterburning F404), with BOTH RFP design missions flown (training and ferry) and the weights calibrated against real trainers. Requirements as prm2_7g_requirements.json: RFP thresholds (takeoff 5,000 ft, critical field 6,000 ft, landing 5,000 ft, Ps 90 ft/s, sustained 4.0 g), M 0.90 sustained speed, 35,000 ft cruise capability, 45,000 ft service ceiling, +7 / -3 g instantaneous at 15,000 ft and M 0.70. WHAT IS DIFFERENT: (1) propulsion.engine_sizing = 'fixed': the thrust is the F124's, so the sizing loop sizes only the takeoff weight and the WING (the smallest wing the engine allows), and the engine weight and size come from its data sheet. (2) Two missions, std_mission (FERRY, RFP-3-P09/P10) and training_mission (RFP-3-P07/P08), both written with the new fixed_thrust segment where the RFP specifies time and thrust setting; the loop carries the fuel of whichever needs more (RFP-3-P06-R01.1). (3) Weights: see the weights block. NOT MODELLED: CLmax falling with Mach, structure weight growing with load factor, pressurization weight for an 8,000 ft cabin at 45,000 ft, part-power TSFC rise. Keys that start with an underscore are documentation only. Identical to prm2_f124_requirements.json except for the engine block (and the starting guesses), so the pair compares the two candidate engines for the engine trade study (RFP-4-P05-R01.1).",
+  "_run_it": "From the Turbofan_Sizing folder: [result, hist] = run_tf_sizing('json', 'prm2_f404_requirements.json');  R = run_tf_constraints('json', 'prm2_f404_requirements.json');  Add 'save_png', true to write output/prm2_f404_*.png.",
+  "_requirements_used": "Constraint diagram: RFP-3-P02-R01.1 (+R01.1.1 2 % thrust margin) max speed; RFP-3-P02-R02.1 Ps; RFP-3-P02-R03.1 sustained g; RFP-3-P02-R04.1 takeoff distance; RFP-3-P02-R05.1 critical field length; RFP-3-P02-R06.1 and RFP-1-P02-R01.1 landing / full-stop FCLP. Atmosphere: RFP-3-P01-R01.1 ISA (get_state is the 1976 US Standard Atmosphere below 65,617 ft). Payload: RFP-3-P04-R01, RFP-3-P05-R01. Mission: RFP-3-P09/P10 ferry flight (std_mission) and RFP-3-P07/P08 training flight (documented below, not run). Every other requirement in the set is a deliverable, not a performance constraint.",
+  "_team_selected_values": "The RFP leaves several conditions to the team (they must be documented in the proposal): reference Mach for Ps and sustained g (M 0.80 used here; 0.70 made the objective design impossible to close), takeoff screen height, landing obstacle height, maximum landing weight, internal fuel fraction (sets the 'MTOW minus 50 % internal fuel' weight), cruise and reserve altitudes. Each is marked TEAM-SELECTED below. This case also fixes: 35,000 ft ferry cruise with 300 ft/min capability, 45,000 ft service ceiling (100 ft/min), and +7 / -3 g instantaneous at 15,000 ft, M 0.70, all TEAM-SELECTED.",
+  "geometry": {
+    "_comment": "PLACEHOLDER baseline: T-45C-like planform (the RFP's own class), with a supercritical section so the M 0.90 objective is not hopeless. Define your own per RFP-4-P08-R01.1.",
+    "AR": 5.0,
+    "taper_ratio": 0.31,
+    "sweep_quarter_chord_deg": 25,
+    "_src_planform": "PLACEHOLDER: T-45C (P-1231: AR 5.0, taper 0.31, 23.67 deg) rounded to 25 deg for the higher speed target.",
+    "thickness_ratio_root": 0.11,
+    "thickness_ratio_tip": 0.08,
+    "_src_thickness_ratio": "PLACEHOLDER.",
+    "twist_deg": -2.5,
+    "incidence_deg": 0,
+    "dihedral_deg": 2,
+    "_src_twist_incidence_dihedral": "Reporting only.",
+    "horizontal_tail": {
+      "volume_coefficient": 0.7,
+      "arm_ft": 15.0,
+      "AR": 4.0,
+      "taper_ratio": 0.4,
+      "thickness_ratio": 0.09,
+      "sweep_quarter_chord_deg": 30,
+      "_src": "Raymer Table 6.4 jet trainer c_HT = 0.70 (RFP-4-P11-R01.1 lets the team pick the volume-coefficient method). Arm and planform PLACEHOLDERS."
+    },
+    "vertical_tail": {
+      "volume_coefficient": 0.06,
+      "arm_ft": 14.0,
+      "AR": 1.3,
+      "taper_ratio": 0.4,
+      "thickness_ratio": 0.09,
+      "sweep_quarter_chord_deg": 35,
+      "_src": "Raymer Table 6.4 jet trainer c_VT = 0.06. Arm and planform PLACEHOLDERS."
+    },
+    "fuselage": {
+      "_comment": "PLACEHOLDER tandem two-seat fuselage with the engine buried (T-45C-like). Two zero-zero seats (RFP-3-P05-R02.1) and the 62-77 in pilot range (RFP-3-P04) set the cockpit; measure your layout.",
+      "width_ft": 4.5,
+      "height_ft": 5.5,
+      "nose_length_ft": 9.0,
+      "constant_length_ft": 16.0,
+      "tailcone_length_ft": 13.5,
+      "tailcone_end_width_ft": 1.6,
+      "tailcone_end_height_ft": 1.8
+    },
+    "nacelle": {
+      "installation": "buried",
+      "diameter_over_engine_diameter": 1.15,
+      "length_over_engine_length": 1.4,
+      "_src": "Single engine buried in the fuselage (no nacelle wetted area). Change to 'pod' if your concept pods its engine."
+    },
+    "landing_gear": {
+      "l_n_over_l_d": 0.85,
+      "l_m_over_l_d": 0.12,
+      "_src": "PLACEHOLDER; post-sizing gear-load check only."
+    }
+  },
+  "aerodynamics": {
+    "Cfe": 0.0035,
+    "_src_Cfe": "Raymer Table 12.3, Air Force (land-based) fighter 0.0035; the T-45C file uses the Navy 0.0040, which includes carrier hardware this design excludes (RFP-2-P01-R02.1). PLACEHOLDER.",
+    "CD0_reference": 0.018,
+    "_src_CD0_reference": "CHECK VALUE only.",
+    "airfoil_type": "supercritical",
+    "_src_airfoil_type": "PLACEHOLDER supercritical section. In THIS file it decides whether M 0.90 costs anything: 0.95 gives M_dd about 0.92 at the max-speed CL, 0.87 about 0.83. Justify the choice in the airfoil trade (RFP-4-P08-R01.1). Options: 'supercritical' (Korn kappa_A 0.95: flat-topped, aft-loaded section) or 'conventional' (0.87: NACA 6-series style). 'custom' uses korn_technology_factor instead. The type only moves the Korn drag-divergence Mach in this model; handling effects are not modelled. Override per run with run_tf_constraints/run_tf_sizing(..., 'airfoil', 'conventional') or trade it with airfoil_sweep_study.",
+    "CLmax_clean": 1.3,
+    "CLmax_takeoff": 1.6,
+    "CLmax_landing": 1.9,
+    "CLmax_reference_sweep_deg": 25,
+    "_src_CLmax_reference_sweep_deg": "CLmax values above are quoted at 25 deg quarter-chord sweep (the baseline). TfAero scales all three by cos(sweep)/cos(25 deg) if the sweep changes (Raymer Sec. 12.4): 35 deg gives about 0.90 x. Remove the key to use CLmax as given at any sweep.",
+    "CLmin_clean": -0.7,
+    "_src_CLmin_clean": "PLACEHOLDER most negative clean lift coefficient (at the 25 deg reference sweep; scaled with sweep like CLmax). Sets the -3 g instantaneous wall. A cambered section reaches a smaller |CL| inverted than upright; an aft-loaded SUPERCRITICAL section is typically about -0.6 to -0.8 against +1.3 here, a symmetric section about -CLmax. Get it from your airfoil data (RFP-4-P08-R01.1).",
+    "_src_CLmax": "PLACEHOLDERS, Roskam Part I Table 3.1 military trainers (clean 1.2-1.8, takeoff 1.4-2.0, landing 1.6-2.2). These set the takeoff slope and the landing wall directly.",
+    "delta_CD0_flaps_takeoff": 0.015,
+    "delta_CD0_flaps_landing": 0.055,
+    "delta_CD0_gear_down": 0.02,
+    "delta_e_flaps_takeoff": -0.05,
+    "delta_e_flaps_landing": -0.1,
+    "_src_increments": "Roskam Part I Table 3.6. PLACEHOLDERS.",
+    "delta_CD0_windmilling_engine": 0.0,
+    "_src_delta_CD0_windmilling_engine": "Single engine: no engine-out condition."
+  },
+  "propulsion": {
+    "_comment": "FIXED, REAL ENGINE: General Electric F404-GE-100D, low-bypass turbofan WITHOUT afterburner (dry F404 for the Singapore A-4S). engine_sizing = 'fixed' holds T_SL = n x thrust x (1 - installation loss) every pass and takes the engine weight, length and diameter from fixed_engine instead of Raymer's rubber-engine regression. The lapse and TSFC are still Mattingly's low-bypass correlations (no public F124 deck), with the TSFC scaled to the data-sheet SLS value.",
+    "engine_type": "Low-bypass turbofan (General Electric F404-GE-100D, dry)",
+    "engine_sizing": "fixed",
+    "fixed_engine": {
+      "name": "F404-GE-100D",
+      "thrust_lbf": 11000,
+      "dry_weight_lbf": 1802,
+      "length_ft": 7.417,
+      "diameter_ft": 2.917,
+      "_src": "ENGINE DATA TABLE supplied by the team (General Electric section, 'Takeoff Conditions'): F404-GE-100D dry SLS thrust 11,000 lb (no afterburner), dry SFC 0.80 lb/(lbf hr), FPR 4.30, OPR 25.0, BPR 0.30, airflow 142 lbm/s, weight 1,802 lb, max diameter 35.0 in, fan diameter not given, length 89.0 in, T/W 6.104, application Singapore A-4S, dry version. Thrust taken as the UNINSTALLED rating."
+    },
+    "n_engines": 1,
+    "_src_n_engines": "RFP-3-P02-R05.1 defines the critical field length 'applicable to a single-engine aircraft'. No condition may set oei = true.",
+    "bypass_ratio": 0.3,
+    "_src_bypass_ratio": "Engine table: BPR 0.30. With a fixed engine it only matters through the low-bypass lapse and TSFC choice (Mattingly's low-bypass forms suit it).",
+    "lapse_model": "mattingly_lbtf",
+    "_src_lapse_model": "Mattingly AED 2nd ed. Eq. 2.54b, low-bypass, military (dry) power, normalised to 1 at SLS. No public F124 installed-thrust deck; RFP-4-P06-R02.1 asks for one.",
+    "throttle_ratio": 1.05,
+    "_src_throttle_ratio": "PLACEHOLDER (Mattingly 1.0-1.08 for low bypass). Affects every flight condition; check it against your engine deck.",
+    "tsfc_model": "mattingly_lbtf",
+    "tsfc_scale": 0.8889,
+    "_src_tsfc_scale": "F404-GE-100D SLS dry SFC 0.80 (engine table) / Mattingly low-bypass 0.90 at SLS = 0.889. Keeps Mattingly's Mach and altitude trends.",
+    "tsfc_constant_per_hr": 0.8,
+    "T_TO_over_T_max_continuous": 1.1,
+    "_src_T_TO_over_T_max_continuous": "PLACEHOLDER; not used (every condition and segment uses military power or a drag-matched thrust).",
+    "installation_loss_fraction": 0.05,
+    "_src_installation_loss_fraction": "PLACEHOLDER 5 %: installed T_SL = 11,000 x 0.95 = 10,450 lbf.",
+    "design_mach": 0.9,
+    "engine_weight_coefficient": 0.1028,
+    "engine_weight_exponent": 1.1,
+    "engine_weight_bpr_coefficient": -0.045,
+    "engine_length_coefficient": 0.2115,
+    "engine_length_exponent": 0.4,
+    "engine_length_mach_exponent": 0.2,
+    "engine_diameter_coefficient": 0.0244,
+    "engine_diameter_exponent": 0.5,
+    "engine_diameter_bpr_coefficient": 0.04,
+    "_src_engine_regression": "NOT USED with engine_sizing = 'fixed' (kept so the file can be switched back to a rubber engine).",
+    "thrust_range_of_validity_lbf": [
+      1000,
+      100000
+    ]
+  },
+  "weights": {
+    "_comment": "Raymer Table 15.2 FIGHTER-column unit weights (wing 9.0, horizontal tail 4.0, vertical tail 5.3 psf; fuselage 4.8 psf wetted), LAND-BASED landing gear 0.033 W0, installed engine 1.3 x the F124's 1,100 lb, and the all-else-empty fraction CALIBRATED. CALIBRATION (same build-up model, same fuselage model): (a) Aero L-39C, a LAND-BASED two-seat jet trainer of this class (Wikipedia spec block citing Jane's 1988-89: MTOW 10,362 lb, empty 7,617 lb, wing 202 ft^2, span 31.0 ft, AI-25TL 3,790 lbf; engine dry weight 772 lb is an ESTIMATE, taper 0.5 assumed): reproducing its empty weight at MTOW needs all-else = 0.1915 -> USED HERE. (b) T-45C (Navy fact file and CNATRA P-1231: 13,500 lb, 9,394 lb empty, 179.64 ft^2, 5,527 lbf) needs 0.228 with the Navy 0.045 gear; that value includes carrier structure the RFP excludes (RFP-2-P01-R02.1), and with it the L-39 comes out 5 % heavy. Use 0.228 as the CONSERVATIVE bound for sensitivity. Both are single-parameter calibrations: the fuselage weight (4.8 psf on the placeholder fuselage) is the same in both and its error is absorbed into all-else. Not captured: pressurization for an 8,000 ft cabin at 45,000 ft and the +7/-3 g limit (the L-39 is +8/-4 g at 9,300 lb, so the structure class is similar).",
+    "W_payload_fixed": 480,
+    "W_payload_expendable": 0,
+    "_src_W_payload": "Maximum crew: 2 x (205 lb nude pilot, RFP-3-P04-R01, + 35 lb equipment, RFP-3-P05-R01) = 480 lb. No other payload is defined (RFP-4-P02-R04.1 asks the team to itemize any).",
+    "unit_weight_wing_psf": 9.0,
+    "unit_weight_horizontal_tail_psf": 4.0,
+    "unit_weight_vertical_tail_psf": 5.3,
+    "unit_weight_fuselage_psf": 4.8,
+    "landing_gear_fraction": 0.033,
+    "_src_landing_gear_fraction": "Raymer Table 15.2 land-based fighter 0.033 W0 (no carrier-strength gear, RFP-2-P01-R02.1).",
+    "installed_engine_factor": 1.3,
+    "all_else_empty_fraction": 0.1915,
+    "_src_unit_weights_and_fractions": "Raymer Table 15.2 fighter column for the unit weights and the 1.3 installed-engine factor; 0.033 W0 land-based gear (RFP-2-P01-R02.1 excludes carrier gear). all_else_empty_fraction: see the weights _comment.",
+    "statistical_empty_coefficient": 1.59,
+    "statistical_empty_exponent": -0.1,
+    "_src_statistical_empty": "Raymer Table 3.1 jet trainer. Cross-check only.",
+    "fuel_density_lb_per_ft3": 50.9,
+    "_src_fuel_density": "JP-5/JP-8 about 6.8 lb/gal. Wing-volume check only; RFP-3-P06-R01.1 requires ALL mission fuel internal, so the fuselage tanks must hold what the wing cannot."
+  },
+  "sizing": {
+    "_comment": "Read by run_tf_sizing. With a fixed engine only W_0 and S_ref are iterated.",
+    "W_TO_guess_lbf": 22000.0,
+    "S_ref_guess_ft2": 300.0,
+    "tol_rel": 1e-06,
+    "max_iter": 300,
+    "relaxation": 0.4,
+    "missions": [
+      "std_mission",
+      "training_mission"
+    ],
+    "_src_missions": "Both RFP design missions are flown every pass; the fuel of the one that needs more is carried (RFP-3-P06-R01.1).",
+    "_src_guesses": "Start ABOVE about 17,000 lb: below that the closure has no solution with this engine (training-mission fuel plus empty weight exceed W_TO) and a first pass there stops the loop. 22,000 lb / 300 ft^2 converges."
+  },
+  "constraints": {
+    "_comment": "THRESHOLD field, Ps (90 ft/s) and sustained-g (4.0 g) requirements of RFP-3-P02, the M 0.90 objective max speed (sustained, R01.2), and TEAM-SELECTED 35,000 ft cruise capability, 45,000 ft service ceiling and +7 / -3 g instantaneous load factors at 15,000 ft, M 0.70. Weight basis for the RFP performance points: MTOW minus 50 % internal fuel = beta 0.89 (PLACEHOLDER internal fuel fraction 0.22).",
+    "_condition_keys": "type: takeoff | landing | approach_speed | instantaneous_turn | climb_gradient | flight. See get_con.",
+    "wing_loading_range_psf": [
+      30,
+      130
+    ],
+    "wing_loading_points": 600,
+    "W_TO_estimate_lbf": 22000.0,
+    "_src_W_TO_estimate_lbf": "PLACEHOLDER first estimate: T-45C MTOW (13,500 lb) less carrier gear, hook and strengthening. Turns T/W into a thrust in run_tf_constraints; the full sizing loop computes its own.",
+    "design_point": {
+      "wing_loading_psf": 70,
+      "thrust_loading": 0.507,
+      "_src": "With a fixed engine run_tf_constraints REPLACES thrust_loading by the F404's T/W at W_TO_estimate_lbf. The W/S is a PLACEHOLDER; the sizing loop picks the smallest wing the engine allows."
+    },
+    "conditions": [
+      {
+        "name": "Takeoff 5,000 ft (R04.1)",
+        "type": "takeoff",
+        "altitude_ft": 5000,
+        "distance_ft": 5000,
+        "config": "takeoff_flaps_gear_down",
+        "beta": 1.0,
+        "_src": "RFP-3-P02-R04.1: total distance to the screen height <= 5,000 ft at MTOW, 5,000 ft density altitude (= 5,000 ft ISA altitude), zero wind, dry runway, takeoff thrust (R04.1.1). Modelled with Roskam's FAR 25 correlation s = 37.5 TOP25 with sigma at 5,000 ft and the static thrust lapse there. That correlation is a BALANCED field length (it includes an engine failure), so for this all-engines distance it is CONSERVATIVE; replace with a ground-roll + air-distance calculation (Raymer Sec. 17.8) for the proposal."
+      },
+      {
+        "name": "Critical field 6,000 ft (R05.1)",
+        "type": "takeoff",
+        "altitude_ft": 5000,
+        "distance_ft": 6000,
+        "config": "takeoff_flaps_gear_down",
+        "beta": 1.0,
+        "_src": "RFP-3-P02-R05.1: critical field length <= 6,000 ft at MTOW, 5,000 ft density altitude, MIL-STD-3013B single-engine definition (accelerate to the decision speed, then either take off or stop). Approximated with the same balanced-field correlation. With this correlation it is always weaker than the 5,000 ft takeoff line (same slope, longer distance); a proper accelerate-stop calculation with your brake coefficient (R06.1.1) could make it the stronger one."
+      },
+      {
+        "name": "Landing 5,000 ft (R06.1)",
+        "type": "landing",
+        "altitude_ft": 5000,
+        "distance_ft": 5000,
+        "distance_is_actual": true,
+        "config": "landing_flaps_gear_down",
+        "beta": 0.88,
+        "_src": "RFP-3-P02-R06.1 (and the full-stop FCLP capability, RFP-1-P02-R01.1): land from the obstacle to a full stop in <= 5,000 ft at MLW, 5,000 ft density altitude, wheel brakes, no arresting gear. distance_is_actual = true converts this ACTUAL distance to the equivalent FAR 25 field length (/0.6) before Roskam's s_FL = 0.3 V_A^2, V_A = 1.3 Vs. beta = MLW/MTOW = 0.88 is TEAM-SELECTED (PLACEHOLDER)."
+      },
+      {
+        "name": "Max speed M0.90 25k ft (R01.2)",
+        "type": "flight",
+        "altitude_ft": 25000,
+        "mach": 0.9,
+        "n": 1.0,
+        "Ps_fps": 0,
+        "config": "clean",
+        "max_continuous": false,
+        "throttle": 0.9804,
+        "beta": 0.89,
+        "_src": "RFP-3-P02-R01.2 OBJECTIVE: level flight at M 0.90 under the threshold conditions (25,000 ft, ISA, military power, clean, MTOW minus 50 % internal fuel), keeping the 2 % thrust margin of RFP-3-P02-R01.1.1 (throttle = 1/1.02). Wave drag from the Korn drag-divergence Mach plus Lock's 4th-power law, which is only reliable up to about the drag-divergence Mach - keep M_dd at or above about 0.92 for margin (the run_tf_sizing output prints M_dd at the cruise CL; drag_divergence_mach(CL) gives it at any CL). This is the M 0.90 SUSTAINED (maximum level-flight) speed: n = 1, Ps = 0, thrust equals drag."
+      },
+      {
+        "name": "Ps 90 ft/s 15k ft (R02.1)",
+        "type": "flight",
+        "altitude_ft": 15000,
+        "mach": 0.8,
+        "n": 1.0,
+        "Ps_fps": 90,
+        "config": "clean",
+        "max_continuous": false,
+        "beta": 0.89,
+        "_src": "RFP-3-P02-R02.1: Ps >= 90 ft/s at 15,000 ft, 1 g, military power, MTOW minus 50 % internal fuel. Reference Mach 0.80 is TEAM-SELECTED (the RFP leaves it to the team). Raised from 0.70: at 0.70 the objective 6 g turn pulled the wing loading down to about 36 psf and the objective design could not close; at 0.80 the turn bucket moves to higher W/S and the low-bypass engine has more thrust. Document this choice in the proposal."
+      },
+      {
+        "name": "Sustained 4.0 g 15k ft (R03.1)",
+        "type": "flight",
+        "altitude_ft": 15000,
+        "mach": 0.8,
+        "n": 4.0,
+        "Ps_fps": 0,
+        "config": "clean",
+        "max_continuous": false,
+        "beta": 0.89,
+        "_src": "RFP-3-P02-R03.1: level constant-Mach turn at +4.0 g without losing speed (Ps = 0), 15,000 ft, military power, MTOW minus 50 % internal fuel. Same TEAM-SELECTED reference Mach 0.80 as the Ps condition. Where 4 g needs more than the clean CLmax the curve goes off the top of the diagram."
+      },
+      {
+        "name": "Instantaneous +7 g 15k ft M0.70",
+        "type": "instantaneous_turn",
+        "altitude_ft": 15000,
+        "mach": 0.7,
+        "n": 7.0,
+        "config": "clean",
+        "beta": 0.89,
+        "_src": "TEAM-SELECTED +7 g INSTANTANEOUS load factor (held up to about 7-15 s, speed may bleed) at 15,000 ft, M 0.70, at MTOW minus 50 % internal fuel like the RFP's other performance points. Lift limit: (W/S)_TO <= q CLmax_clean / (7 beta). Because speed is allowed to decay it needs no thrust - it is a vertical wall. +7 g is also the positive LIMIT LOAD FACTOR for the structure (ultimate 10.5 g at a 1.5 factor, RFP-4-P04-R02.1); it must be at least the sustained-g threshold (RFP-3-P02-R03.1.1)."
+      },
+      {
+        "name": "Instantaneous -3 g 15k ft M0.70",
+        "type": "instantaneous_turn",
+        "altitude_ft": 15000,
+        "mach": 0.7,
+        "n": -3.0,
+        "config": "clean",
+        "beta": 0.89,
+        "_src": "TEAM-SELECTED -3 g INSTANTANEOUS load factor at 15,000 ft, M 0.70, same weight. Limited by NEGATIVE lift: (W/S)_TO <= q |CLmin_clean| / (3 beta). -3 g is also the negative structural limit load factor (ultimate -4.5 g)."
+      },
+      {
+        "name": "Cruise 35k ft capability",
+        "type": "flight",
+        "altitude_ft": 35000,
+        "mach": 0.72,
+        "n": 1.0,
+        "Ps_fps": 5.0,
+        "config": "clean",
+        "max_continuous": false,
+        "beta": 0.95,
+        "_src": "TEAM-SELECTED 35,000 ft ferry cruise (RFP-3-P09-R03.1/R04.1): climb at 300 ft/min (Ps = 5 ft/s) at 35,000 ft and the cruise Mach 0.72, military power, start-of-cruise weight (beta 0.95, PLACEHOLDER). Guarantees the mission climb reaches cruise altitude on every sizing pass. The ferry mission cruises at 35,000 ft."
+      },
+      {
+        "name": "Service ceiling 45k ft",
+        "type": "flight",
+        "altitude_ft": 45000,
+        "mach": 0.72,
+        "n": 1.0,
+        "Ps_fps": 1.667,
+        "config": "clean",
+        "max_continuous": false,
+        "beta": 0.89,
+        "_src": "TEAM-SELECTED 45,000 ft maximum ceiling, written as a SERVICE ceiling: 100 ft/min (Ps = 1.667 ft/s, MIL-STD-3013B usage), military power, clean, MTOW minus 50 % internal fuel. M 0.72 is a PLACEHOLDER near the best-climb Mach. Ps_fps = 0 gives an absolute ceiling."
+      }
+    ]
+  },
+  "missions": {
+    "std_mission": {
+      "_description": "FERRY FLIGHT, RFP-3-P09 / P10, at 35,000 ft. Segments 1, 2 and 6 use fixed_thrust because the RFP gives them as time at a thrust setting. Reserve: 45 min at maximum-endurance speed (loiter with no speed given).",
+      "reserve_fuel_fraction": 0.01,
+      "_src_reserve": "1 % unusable/trapped fuel (RFP-3-P06-R01.1.1), PLACEHOLDER. The 45-minute reserve is the last segment.",
+      "climb_segments": 8,
+      "cruise_segments": 20,
+      "segments": [
+        {
+          "type": "fixed_thrust",
+          "name": "Start, warmup, taxi 15 min",
+          "alt_ft": 0,
+          "time_min": 15,
+          "thrust": "idle",
+          "fuel_flow_pph": 700
+        },
+        {
+          "type": "fixed_thrust",
+          "name": "Takeoff, accelerate 1 min",
+          "alt_ft": 0,
+          "mach": 0.2,
+          "time_min": 1,
+          "thrust": "military"
+        },
+        {
+          "type": "climb",
+          "name": "Climb to 35,000 ft",
+          "alt_ft": 35000,
+          "keas": 250,
+          "mach": 0.7
+        },
+        {
+          "type": "cruise",
+          "name": "Cruise M0.72 35,000 ft",
+          "alt_ft": 35000,
+          "mach": 0.72,
+          "distance_nm": 540
+        },
+        {
+          "type": "descent",
+          "name": "Descent to sea level",
+          "alt_ft": 0,
+          "weight_fraction": 0.99
+        },
+        {
+          "type": "fixed_thrust",
+          "name": "Approach, landing 10 min",
+          "alt_ft": 0,
+          "time_min": 10,
+          "thrust": "drag",
+          "config": "landing_flaps_gear_down",
+          "speed_over_stall": 1.3,
+          "drag_factor": 1.0
+        },
+        {
+          "type": "loiter",
+          "name": "Reserve 45 min max endur.",
+          "alt_ft": 10000,
+          "time_min": 45
+        }
+      ],
+      "_src_segments": "1: RFP-3-P09-R01, 15 min idle. PLACEHOLDER idle fuel flow 700 lb/hr: no F404 idle data available; about 8 % of the military fuel flow (11,000 lbf x 0.80 = 8,800 lb/hr), typical of a small turbofan at ground idle. Replace with engine data (RFP-3-P07-R01.1 asks for the team-defined idle fuel flow). 2: RFP-3-P09-R02, 1 min at takeoff (military) thrust at an average M 0.2. 3-4: RFP-3-P09-R03/R04, 35,000 ft and M 0.72 TEAM-SELECTED; RFP-3-P09-R06.1 counts climb and descent distance in the 600 nm, the code counts only the cruise, so 540 nm is used - set it to 600 minus the printed climb distance and about 30 nm of descent. 5: RFP-3-P09-R05, fixed fraction 0.990 (Roskam). 6: RFP-3-P09-R07, 10 min of approach and landing, landing configuration, thrust = level drag at 1.3 V_s (no go-around, per R07.1). 7: RFP-3-P10-R01, 45 min at maximum-endurance speed (L/D max) in cruise configuration; 10,000 ft TEAM-SELECTED."
+    },
+    "training_mission": {
+      "_description": "TRAINING FLIGHT, RFP-3-P07 / P08: idle taxi, takeoff, climb to 20,000 ft, 50 nm out, idle descent to 10,000 ft, 30 min of military-thrust maneuvering at M 0.60, climb back to 20,000 ft, 50 nm back, idle descent, 30 min of FCLP touch-and-goes, 30 min reserve.",
+      "reserve_fuel_fraction": 0.01,
+      "_src_reserve": "1 % unusable/trapped fuel, PLACEHOLDER. The 30-minute reserve is the last segment.",
+      "climb_segments": 8,
+      "cruise_segments": 10,
+      "segments": [
+        {
+          "type": "fixed_thrust",
+          "name": "Start, warmup, taxi 15 min",
+          "alt_ft": 0,
+          "time_min": 15,
+          "thrust": "idle",
+          "fuel_flow_pph": 700
+        },
+        {
+          "type": "fixed_thrust",
+          "name": "Takeoff, accelerate 1 min",
+          "alt_ft": 0,
+          "mach": 0.2,
+          "time_min": 1,
+          "thrust": "military"
+        },
+        {
+          "type": "climb",
+          "name": "Climb to 20,000 ft 250 KCAS",
+          "alt_ft": 20000,
+          "keas": 250,
+          "mach": 0.85
+        },
+        {
+          "type": "cruise",
+          "name": "Cruise out 50 nm",
+          "alt_ft": 20000,
+          "mach": 0.65,
+          "distance_nm": 50
+        },
+        {
+          "type": "fixed_thrust",
+          "name": "Idle descent to 10,000 ft",
+          "alt_ft": 10000,
+          "time_min": 4,
+          "thrust": "idle",
+          "fuel_flow_pph": 700
+        },
+        {
+          "type": "fixed_thrust",
+          "name": "Maneuver 30 min mil M0.60",
+          "alt_ft": 10000,
+          "mach": 0.6,
+          "time_min": 30,
+          "thrust": "military"
+        },
+        {
+          "type": "climb",
+          "name": "Climb to 20,000 ft 250 KCAS",
+          "alt_ft": 20000,
+          "keas": 250,
+          "mach": 0.85
+        },
+        {
+          "type": "cruise",
+          "name": "Cruise back 50 nm",
+          "alt_ft": 20000,
+          "mach": 0.65,
+          "distance_nm": 50
+        },
+        {
+          "type": "fixed_thrust",
+          "name": "Idle descent to sea level",
+          "alt_ft": 0,
+          "time_min": 7,
+          "thrust": "idle",
+          "fuel_flow_pph": 700
+        },
+        {
+          "type": "fixed_thrust",
+          "name": "FCLP touch-and-go 30 min",
+          "alt_ft": 0,
+          "time_min": 30,
+          "thrust": "drag",
+          "config": "landing_flaps_gear_down",
+          "speed_over_stall": 1.3,
+          "drag_factor": 1.3
+        },
+        {
+          "type": "loiter",
+          "name": "Reserve 30 min max endur.",
+          "alt_ft": 10000,
+          "time_min": 30
+        }
+      ],
+      "_src_segments": "1: RFP-3-P07-R01, 15 min idle. PLACEHOLDER idle fuel flow 700 lb/hr: no F404 idle data available; about 8 % of the military fuel flow (11,000 lbf x 0.80 = 8,800 lb/hr), typical of a small turbofan at ground idle. Replace with engine data (RFP-3-P07-R01.1 asks for the team-defined idle fuel flow). 2: RFP-3-P07-R02, 1 min takeoff thrust, average M 0.2. 3: RFP-3-P07-R03, climb to 20,000 ft at 250 KCAS (taken as KEAS - they differ by under 2 % here); 'mach' 0.85 is only a cap, never reached. 4: RFP-3-P07-R04, 50 nm out at 20,000 ft and M 0.65 (TEAM-SELECTED speed); the climb distance is not subtracted (conservative). 5: RFP-3-P07-R05, idle descent 20,000 -> 10,000 ft, about 4 min at roughly 2,500 ft/min. 6: RFP-3-P07-R06, 30 min at 10,000 ft, M 0.60, MILITARY thrust - flown as one steady condition (the maneuver mix is not modelled; at constant military thrust the fuel does not depend on it). 7-8: RFP-3-P07-R07/R08, climb back to 20,000 ft at 250 KCAS and cruise the same 50 nm back. 9: RFP-3-P07-R09, idle descent to sea level, about 7 min. 10: RFP-3-P07-R10, 30 min of FCLP touch-and-goes, gear down and landing flaps, at 1.3 V_s (TEAM-SELECTED approach speed); thrust = 1.3 x level drag to cover the climbs and accelerations of the circuit (PLACEHOLDER drag_factor - a power-setting time history of a real pattern would replace it). 11: RFP-3-P08-R01, 30 min at maximum-endurance speed in cruise configuration; 10,000 ft TEAM-SELECTED."
+    }
+  }
+}
