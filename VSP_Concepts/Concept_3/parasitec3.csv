@@ -1,0 +1,24 @@
+PARASITE DRAG BUILD UP DATA 
+
+Mach, Altitude (ft), Vinf (KTAS), S_ref (ft^2)
+0.406953, 20000.000000, 250.000000, 190.100000 
+
+Temp (F), Pressure (lbf/ft^2), Density (slug/ft^3) 
+-12.323200, 972.493806, 0.001266 
+
+Lam Cf Eqn, Turb Cf Eqn 
+Laminar Blasius, Compressible Schlichting 
+
+Component Name,S_wet (ft^2),L_ref (ft),t/c or d/l,FF,FF Eqn Type,Re,% Lam,Cf,Q (Interference Factor),f (ft^2),Cd,% Total 
+Fuselage,398.782097, 35.842462, 7.918346,1.081419, Hoerner Streamlined Body,57621305.885269, 0.000000,0.002302, 1.000000,0.992689, 0.005222, 32.319034 
+SideInlets,62.059634, 9.462377, 5.423848,1.162620, Hoerner Streamlined Body,15211972.118623, 0.000000,0.002811, 1.000000,0.202823, 0.001067, 6.603303 
+Wing,350.424623, 6.646569, 0.112186,1.233875, Hoerner,10685202.307858, 0.000000,0.002972, 1.000000,1.285069, 0.006760, 41.838052 
+HorizontalTail,109.907978, 4.756590, 0.060017,1.120811, Hoerner,7646821.922300, 0.000000,0.003137, 1.000000,0.386392, 0.002033, 12.579785 
+VerticalTail,56.822643, 5.170667, 0.060017,1.120811, Hoerner,8312502.739605, 0.000000,0.003094, 1.000000,0.197077, 0.001037, 6.416232 
+VentralFin,1.847545, 2.042105, 0.060017,1.120811, Hoerner,3282943.320248, 0.000000,0.003613, 1.000000,0.007482, 0.000039, 0.243594 
+
+Excrescences, Type, Input
+
+ , , , , , , , , , Geometry Sub-Total:, 3.071532, 0.016157, 100.000000 
+ , , , , , , , , , Excrescence Sub-Total:, 0.000000, 0.000000, 0.000000 
+ , , , , , , , , , Totals:, 3.071532, 0.016157, 100.000000 
