@@ -1,0 +1,51 @@
+AERODYNAMIC DESIGN REPORT
+AoA comes from each VSPAERO export. No manual fit window.
+Fits use all usable exported rows and are drawn over sampled CL.
+Parasite export treated as Mach 0.4; no Mach matching.
+Low-speed Sref: 204.129
+Cruise Sref: 204.129
+Parasite Sref: 204.129
+Geometry wetted area: 1014.39808
+Exported parasite CD0: 0.015468
+Cruise-basis CD0: 0.015468
+Cruise AR: 5.43230016
+Taper ratio: 0.6655
+Section clmax estimate: 1.65
+Quarter-chord sweep: 17.2 deg
+Leading-edge sweep: 19.1123912 deg
+Clean Oswald efficiency: 0.886824619
+
+Low speed | Mach 0.2 | Re 7.4e+06
+Drag source: exported CDwtot
+Exported rows: 6 | Usable drag rows: 6
+Lift slope: 0.0855720569 per deg | Zero-lift AoA: -0.952805533 deg
+Cm slope: -0.0582038632 per deg
+Best sampled L/D: 11.8938348 at CL 0.40620595, AoA 4 deg
+CD = b0 + b1*CL + b2*CL^2
+b0: 0.0146922509 | b1: 0.0336158704 | b2: 0.0438138752
+
+Cruise | Mach 0.4 | Re 1.3e+07
+Drag source: CDiw + rescaled parasite CD0
+Exported rows: 6 | Usable drag rows: 6
+Lift slope: 0.0829610164 per deg | Zero-lift AoA: -1.18140729 deg
+Cm slope: -0.0456976754 per deg
+Best sampled L/D: 13.1988042 at CL 0.419446645, AoA 4 deg
+CD = b0 + b1*CL + b2*CL^2
+b0: 0.0135427057 | b1: 0.0198234068 | b2: 0.0660327065
+
+JSON INPUTS ONLY | merge into aerodynamics
+{
+  "Cfe": 0.0031126511622163624,
+  "CD0_reference": 0.015468,
+  "airfoil_type": "conventional",
+  "CLmax_clean": 1.4185883677516802,
+  "CLmax_takeoff": 1.8033924959635097,
+  "CLmax_landing": 1.9683085509114366,
+  "CLmax_reference_sweep_deg": 17.2,
+  "delta_CD0_flaps_takeoff": 0.02,
+  "delta_CD0_flaps_landing": 0.07,
+  "delta_CD0_gear_down": 0.02,
+  "delta_CD0_windmilling_engine": 0,
+  "delta_e_flaps_takeoff": -0.044341230950567079,
+  "delta_e_flaps_landing": -0.088682461901134158
+}
