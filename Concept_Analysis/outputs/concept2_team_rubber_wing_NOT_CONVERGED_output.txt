@@ -1,0 +1,25 @@
+RUBBER wing (loop sizes S_ref), team
+Input: Turbofan_Sizing/prm2_concept2_requirements.json
+
+*** THE SIZING LOOP DID NOT CONVERGE ***
+At W0 = 16901 lbf the fixed engine (F124-GA-100) cannot meet the requirements: engine too small: needs T/W 0.3598 at 48.5 psf, has 0.3597.
+
+REFERENCE POINT (not a closed design): the requirements evaluated at the fixed-wing W_TO
+14848 lbf with the wing at the least-thrust W/S (S_ref 307.0 ft^2) and the F124 (T_SL 6080 lbf).
+The requirements table and weights below belong to that reference airplane; no mission
+fuel was closed, so W_fuel is W_TO - OEW - payload at that weight.
+
+               <strong>requirement</strong>                       <strong>type</strong>            <strong>required</strong>    <strong>available</strong>    <strong>margin_pct</strong>    <strong>pass</strong> 
+    <strong>_________________________________</strong>    <strong>____________________</strong>    <strong>________</strong>    <strong>_________</strong>    <strong>__________</strong>    <strong>_____</strong>
+
+    "Takeoff 5,000 ft (R04.1)"           "takeoff"                0.2934      0.40949       39.569      true 
+    "Critical field 6,000 ft (R05.1)"    "takeoff"                0.2445      0.40949       67.483      true 
+    "Landing 5,000 ft (R06.1)"           "landing"                102.95       48.364       112.86      true 
+    "Max speed M0.90 25k ft (R01.2)"     "flight"                0.35659      0.40949       14.834      true 
+    "Ps 90 ft/s 15k ft (R02.1)"          "flight"                0.31339      0.40949       30.664      true 
+    "Sustained 4.0 g 15k ft (R03.1)"     "flight"                0.34498      0.40949       18.701      true 
+    "Instantaneous +7 g 15k ft M0.70"    "instantaneous_turn"     88.081       48.364       82.122      true 
+    "Instantaneous -3 g 15k ft M0.70"    "instantaneous_turn"     107.39       48.364       122.06      true 
+    "Cruise 35k ft capability"           "flight"                0.26996      0.40949       51.685      true 
+    "Service ceiling 45k ft"             "flight"                0.35902      0.40949       14.057      true 
+

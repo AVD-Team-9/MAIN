@@ -1,0 +1,21 @@
+RUBBER wing (loop sizes S_ref), rfp
+Input: Turbofan_Sizing/prm2_concept5_rfp_requirements.json
+
+*** THE SIZING LOOP DID NOT CONVERGE ***
+The first pass failed at the starting guesses (W_0 = 15000 lbf, T_SL = 6080 lbf, S_ref = 204.1 ft^2): At W0 = 15000 lbf the fixed engine (F124-GA-100) cannot meet the requirements: engine too small: needs T/W 0.4531 at 67.7 psf, has 0.4053.  Change the guesses - relaxation cannot help a first pass. A wing guess near W_0 / (landing-wall W/S) is a good start.
+
+REFERENCE POINT (not a closed design): the requirements evaluated at the fixed-wing W_TO
+13911 lbf with the wing at the least-thrust W/S (S_ref 205.9 ft^2) and the F124 (T_SL 6080 lbf).
+The requirements table and weights below belong to that reference airplane; no mission
+fuel was closed, so W_fuel is W_TO - OEW - payload at that weight.
+
+               <strong>requirement</strong>                 <strong>type</strong>       <strong>required</strong>    <strong>available</strong>    <strong>margin_pct</strong>    <strong>pass</strong> 
+    <strong>_________________________________</strong>    <strong>_________</strong>    <strong>________</strong>    <strong>_________</strong>    <strong>__________</strong>    <strong>_____</strong>
+
+    "Takeoff 5,000 ft (R04.1)"           "takeoff"    0.38806      0.43708       12.632      true 
+    "Critical field 6,000 ft (R05.1)"    "takeoff"    0.32338      0.43708       35.158      true 
+    "Landing 5,000 ft (R06.1)"           "landing"     108.22       67.563       60.182      true 
+    "Max speed M0.78 25k ft (R01.1)"     "flight"     0.21288      0.43708       105.32      true 
+    "Ps 90 ft/s 15k ft (R02.1)"          "flight"     0.33338      0.43708       31.106      true 
+    "Sustained 4.0 g 15k ft (R03.1)"     "flight"     0.45266      0.43708      -3.4423      false
+

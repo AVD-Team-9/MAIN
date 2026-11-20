@@ -1,0 +1,77 @@
+FIXED wing (VSP S_ref held), rfp
+Input: Concept_Analysis/inputs/concept5_rfp.json
+
+
+===================== CONCEPT ANALYSIS (fixed geometry) =====================
+  file      C:\Users\ganon\Downloads\IHW3_Code\Concept_Analysis\inputs\concept5_rfp.json
+  wing      S_ref 204.13 ft^2 FIXED, AR 5.432, span 33.30 ft, taper 0.590, sweep 14.69 deg qc, conventional airfoil
+  tails     S_ht 55.7 ft^2, S_vt 35.3 ft^2   fuselage 38.5 ft   S_wet 1031.6 ft^2   CD0 0.01573   e 0.887
+  V-tail    S_V 90.98 ft^2 at 38.5 deg dihedral; projected 55.72 / 35.26 ft^2 (required 55.72 / 35.26); b_V 14.36 ft, projected 11.24 ft
+  trim      Cm0_w -0.0276; tail CL_h -0.0160 / -0.0160, trim dCD 0.00082 / 0.00230 at CL 0.3 / 1.0
+  engine    FIXED F124-GA-100, T_SL 6080 lbf installed
+  missions  std_mission, training_mission
+
+    #       W_TO      T_SL    W_fuel       OEW   residual
+    1    15000.0    6080.0    4750.2    9178.2     591.67
+    2    13636.4    6080.0    4545.3    8759.9    -148.93
+    3    13910.6    6080.0    4586.3    8844.3       0.00
+
+=========================== CONVERGED CONCEPT ===========================
+  closed in 3 evaluations
+
+  W_TO     13910.6 lbf     S_ref   204.13 ft^2 (fixed)   W/S   68.15 psf
+  T_SL      6080.0 lbf     T/W     0.4371                (fixed engine)
+  payload    480.0 lbf     fuel    4586.3 lbf (training_mission)   OEW   8844.3 lbf
+  sum      13910.6 lbf against W_TO 13910.6 lbf
+
+  --------------------------- REQUIREMENTS ---------------------------
+  requirement                            needed  available    margin  
+  Takeoff 5,000 ft (R04.1)               0.3914     0.4371    +11.7%  PASS  (T/W)
+  Critical field 6,000 ft (R05.1)        0.3262     0.4371    +34.0%  PASS  (T/W)
+  Landing 5,000 ft (R06.1)             108.2229    68.1461    +58.8%  PASS  (psf max)
+  Max speed M0.78 25k ft (R01.1)         0.2121     0.4371   +106.1%  PASS  (T/W)
+  Ps 90 ft/s 15k ft (R02.1)              0.3323     0.4371    +31.5%  PASS  (T/W)
+  Sustained 4.0 g 15k ft (R03.1)         0.4531     0.4371     -3.5%  *** FAIL  (T/W)
+  *** 1 requirement(s) NOT met.
+  heaviest W_TO meeting every requirement: 13415 lbf (-3.6 % vs W_TO), limited by Sustained 4.0 g 15k ft (R03.1)
+
+  ----------------------- MISSION: std_mission
+  segment                        fuel     W end      CL     L/D  time hr  dist nm
+  Start, warmup, taxi 15 min    100.0   13810.6     NaN     NaN    0.250      0.0
+  Takeoff, accelerate 1 min      90.0   13720.6     NaN     NaN    0.017      2.2
+  Climb to 35,000 ft            299.4   13421.2   0.319   13.65    0.094     32.6
+  Cruise M0.72 35,000 ft       1080.1   12341.1   0.350   13.57    1.301    540.0
+  Descent to sea level          123.4   12217.7     NaN     NaN      NaN      NaN
+  Approach, landing 10 min      305.3   11912.4   1.162    5.67    0.167     20.4
+  Reserve 45 min max endur.     509.9   11402.5   0.488   14.93    0.750    164.0
+  total burned                 2508.0   (x (1 + 0.010 reserve) = 2533.1 lbf)
+
+  ----------------------- MISSION: training_mission  <- GOVERNS THE FUEL
+  segment                        fuel     W end      CL     L/D  time hr  dist nm
+  Start, warmup, taxi 15 min    100.0   13810.6     NaN     NaN    0.250      0.0
+  Takeoff, accelerate 1 min      90.0   13720.6     NaN     NaN    0.017      2.2
+  Climb to 20,000 ft 250 KCAS    176.4   13544.1   0.316   13.63    0.041     12.2
+  Cruise out 50 nm              133.7   13410.4   0.230   11.55    0.125     50.0
+  Idle descent to 10,000 ft      26.7   13383.7     NaN     NaN    0.067      0.0
+  Maneuver 30 min mil M0.60    2501.2   10882.5     NaN     NaN    0.500    191.5
+  Climb to 20,000 ft 250 KCAS     65.1   10817.4   0.251   12.19    0.018      5.7
+  Cruise back 50 nm             124.5   10692.9   0.183    9.90    0.125     50.0
+  Idle descent to sea level      46.7   10646.2     NaN     NaN    0.117      0.0
+  FCLP touch-and-go 30 min     1002.1    9644.1   1.125    5.66    0.500     57.2
+  Reserve 30 min max endur.     274.4    9369.7   0.488   14.93    0.500     98.4
+  total burned                 4540.9   (x (1 + 0.010 reserve) = 4586.3 lbf)
+
+  -------------------------- WEIGHT BUILD-UP --------------------------
+  wing                     956.1 lbf   10.8 %
+  V-tail (both panels)     338.7 lbf    3.8 %
+  fuselage                2410.9 lbf   27.3 %
+  landing gear             459.0 lbf    5.2 %
+  installed engines       1430.0 lbf   16.2 %
+  all else empty          3249.5 lbf   36.7 %
+  OEW (build-up)          8844.3 lbf
+
+  ------------------------------ CHECKS ------------------------------
+  *** wing holds 3063 lbf, mission needs 4586 lbf: SHORT by 33.2 % (fuselage tanks needed)
+  Korn drag-divergence Mach at the mean cruise CL: 0.756
+
+Done.

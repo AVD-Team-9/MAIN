@@ -1,0 +1,25 @@
+RUBBER wing (loop sizes S_ref), team
+Input: Turbofan_Sizing/prm2_concept6_requirements.json
+
+*** THE SIZING LOOP DID NOT CONVERGE ***
+The first pass failed at the starting guesses (W_0 = 15000 lbf, T_SL = 6080 lbf, S_ref = 215.5 ft^2): At W0 = 15000 lbf the fixed engine (F124-GA-100) cannot meet the requirements: engine too small: needs T/W 0.5481 at 94.7 psf, has 0.4053.  Change the guesses - relaxation cannot help a first pass. A wing guess near W_0 / (landing-wall W/S) is a good start.
+
+REFERENCE POINT (not a closed design): the requirements evaluated at the fixed-wing W_TO
+14809 lbf with the wing at the least-thrust W/S (S_ref 156.3 ft^2) and the F124 (T_SL 6080 lbf).
+The requirements table and weights below belong to that reference airplane; no mission
+fuel was closed, so W_fuel is W_TO - OEW - payload at that weight.
+
+               <strong>requirement</strong>                       <strong>type</strong>            <strong>required</strong>    <strong>available</strong>    <strong>margin_pct</strong>    <strong>pass</strong> 
+    <strong>_________________________________</strong>    <strong>____________________</strong>    <strong>________</strong>    <strong>_________</strong>    <strong>__________</strong>    <strong>_____</strong>
+
+    "Takeoff 5,000 ft (R04.1)"           "takeoff"               0.54287      0.41055      -24.373      false
+    "Critical field 6,000 ft (R05.1)"    "takeoff"               0.45239      0.41055      -9.2474      false
+    "Landing 5,000 ft (R06.1)"           "landing"                108.47       94.749        14.48      true 
+    "Max speed M0.90 25k ft (R01.2)"     "flight"                0.56351      0.41055      -27.143      false
+    "Ps 90 ft/s 15k ft (R02.1)"          "flight"                0.26901      0.41055       52.617      true 
+    "Sustained 4.0 g 15k ft (R03.1)"     "flight"                0.41521      0.41055      -1.1207      false
+    "Instantaneous +7 g 15k ft M0.70"    "instantaneous_turn"     94.749       94.749        1e-07      true 
+    "Instantaneous -3 g 15k ft M0.70"    "instantaneous_turn"     107.39       94.749       13.347      true 
+    "Cruise 35k ft capability"           "flight"                0.22277      0.41055       84.299      true 
+    "Service ceiling 45k ft"             "flight"                0.34458      0.41055       19.148      true 
+
